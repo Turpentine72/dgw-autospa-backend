@@ -1,9 +1,13 @@
 const cloudinary = require('cloudinary').v2;
 const Service = require('../models/Service');
 
-// Helper to upload buffer to Cloudinary – configures on every call (safe)
 const uploadToCloudinary = (buffer, originalName) => {
-  // ✅ Force configuration here (overrides any missing config)
+  console.log('🔍 Inside uploadToCloudinary');
+  console.log('CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME);
+  console.log('API_KEY exists?', !!process.env.CLOUDINARY_API_KEY);
+  console.log('API_SECRET exists?', !!process.env.CLOUDINARY_API_SECRET);
+
+  // Force configuration
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -18,8 +22,12 @@ const uploadToCloudinary = (buffer, originalName) => {
         public_id: `${Date.now()}_${originalName.split('.')[0]}`,
       },
       (error, result) => {
-        if (error) reject(error);
-        else resolve(result.secure_url);
+        if (error) {
+          console.error('Cloudinary upload error:', error.message);
+          reject(error);
+        } else {
+          resolve(result.secure_url);
+        }
       }
     );
     uploadStream.end(buffer);
