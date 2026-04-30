@@ -13,11 +13,15 @@ connectDB();
 
 const app = express();
 
+
+
 // CORS – allow your frontend URLs
 app.use(cors({
   origin: [process.env.FRONTEND_URL, process.env.ADMIN_URL, 'http://localhost:5173'],
   credentials: true,
 }));
+
+
 
 // Rate limiting – returns JSON
 const limiter = rateLimit({
@@ -42,6 +46,16 @@ app.use('/uploads', express.static('uploads'));
 // Health check (required by Railway)
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
+
+// Debug endpoint – verify environment variables
+app.get('/debug-env', (req, res) => {
+  res.json({
+    CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || 'missing',
+    API_KEY: process.env.CLOUDINARY_API_KEY ? 'present' : 'missing',
+    API_SECRET: process.env.CLOUDINARY_API_SECRET ? 'present' : 'missing',
+    NODE_ENV: process.env.NODE_ENV || 'not set',
+  });
 });
 
 // Routes
