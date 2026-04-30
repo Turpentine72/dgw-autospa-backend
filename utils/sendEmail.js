@@ -56,11 +56,21 @@ const safeSend = async (options) => {
 };
 
 // ---------- Dynamic brand wrapper ----------
-const wrapTemplate = (body, business) => `
+const wrapTemplate = (body, business) => {
+  // Ensure we have valid values with fallbacks
+  const phone = business?.phone || '+234 702 588 7213';
+  const email = business?.email || process.env.EMAIL_USER || 'info@dgwautospa.com';
+  const address = business?.address || '4, Ibrahim Odofin Street, Idado Estate, Lekki Peninsula II, Lagos, Nigeria';
+  
+  // Clean phone for tel: link (remove spaces, dashes, parentheses)
+  const cleanPhone = phone.replace(/[\\s\\-\\(\\)]/g, '');
+  
+  return `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DGW Autospa</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f7f7f7;font-family:Arial,sans-serif;">
@@ -83,17 +93,17 @@ const wrapTemplate = (body, business) => `
         <table cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">
           <tr>
             <td style="padding:0 6px;">
-              <a href="https://wa.me/${business.phone.replace(/\s/g, '')}" style="display:inline-block;background-color:#25D366;color:#ffffff;padding:10px 18px;border-radius:30px;text-decoration:none;font-size:13px;">💬 WhatsApp</a>
+              <a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener noreferrer" style="display:inline-block;background-color:#25D366;color:#ffffff;padding:10px 18px;border-radius:30px;text-decoration:none;font-size:13px;font-weight:600;">💬 WhatsApp</a>
             </td>
             <td style="padding:0 6px;">
-              <a href="tel:${business.phone.replace(/\s/g, '')}" style="display:inline-block;background-color:#1d4ed8;color:#ffffff;padding:10px 18px;border-radius:30px;text-decoration:none;font-size:13px;">📞 ${business.phone}</a>
+              <a href="tel:${cleanPhone}" style="display:inline-block;background-color:#1d4ed8;color:#ffffff;padding:10px 18px;border-radius:30px;text-decoration:none;font-size:13px;font-weight:600;">📞 ${phone}</a>
             </td>
             <td style="padding:0 6px;">
-              <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${business.email}" style="display:inline-block;background-color:#374151;color:#ffffff;padding:10px 18px;border-radius:30px;text-decoration:none;font-size:13px;">✉️ Email Us</a>
+              <a href="mailto:${email}" style="display:inline-block;background-color:#374151;color:#ffffff;padding:10px 18px;border-radius:30px;text-decoration:none;font-size:13px;font-weight:600;">✉️ Email Us</a>
             </td>
           </tr>
         </table>
-        <p style="font-size:12px;color:#9ca3af;margin:8px 0 0;">${business.address}</p>
+        <p style="font-size:12px;color:#9ca3af;margin:8px 0 0;">${address}</p>
         <p style="font-size:12px;color:#9ca3af;margin:4px 0 0;">© ${new Date().getFullYear()} DGW Autospa. All rights reserved.</p>
       </td>
     </tr>
@@ -101,6 +111,7 @@ const wrapTemplate = (body, business) => `
 </body>
 </html>
 `;
+};
 
 const getBusinessSettings = async () => {
   try {
@@ -175,7 +186,7 @@ exports.sendBookingStatusUpdate = async (booking) => {
 
   if (booking.status === 'contacted') {
     emoji = '📞';
-    heading = 'We’ve Reached Out!';
+    heading = 'We\'ve Reached Out!';
     message = `We've contacted you regarding your booking for <strong>${booking.serviceName}</strong>. Please check your phone or email for details.`;
   } else if (booking.status === 'confirmed') {
     emoji = '🎉';
@@ -281,7 +292,7 @@ exports.sendEmailChangeVerification = async (newEmail, otp) => {
   await safeSend({ email: newEmail, subject: '🔒 Verify Your New Email Address', html });
 };
 
-// ---------- SUPER ADMIN NOTIFICATIONS (unchanged but now uses dynamic footer) ----------
+// ---------- SUPER ADMIN NOTIFICATIONS ----------
 exports.sendSuperAdminNotification = async (subject, html) => {
   const Admin = require('../models/Admin');
   const superAdmin = await Admin.findOne({ role: 'Super Admin' });
@@ -339,7 +350,7 @@ exports.sendContactReply = async (contact) => {
     <p style="font-size:13px;color:#6b7280;">If you have further questions, please don't hesitate to contact us.</p>
   `);
   await safeSend({
-    email: contact.email, 
+    email: contact.email,
     subject: `📩 Reply from DGW Autospa`,
     html,
   });

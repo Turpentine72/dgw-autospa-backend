@@ -1,6 +1,32 @@
+const cloudinary = require('cloudinary').v2;
 const Service = require('../models/Service');
 
-// Public: returns ALL services (homepage uses this)
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Helper: upload buffer to Cloudinary
+const uploadToCloudinary = (buffer, originalName) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'services',
+        allowed_formats: ['jpg', 'png', 'webp', 'jpeg'],
+        public_id: `${Date.now()}_${originalName.split('.')[0]}`,
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    );
+    uploadStream.end(buffer);
+  });
+};
+
+// GET public services
 exports.getServices = async (req, res, next) => {
   try {
     const services = await Service.find().sort('name');
@@ -8,7 +34,7 @@ exports.getServices = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Admin: same list (used in admin panel)
+// GET admin services
 exports.getAdminServices = async (req, res, next) => {
   try {
     const services = await Service.find().sort('name');
@@ -16,35 +42,45 @@ exports.getAdminServices = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Admin: create a new service
+// CREATE service
 exports.createService = async (req, res, next) => {
   try {
     const { name, description, category } = req.body;
-    const serviceData = { name, description, category };
+    let imageUrl = null;
+
     if (req.file) {
-      // Store the path relative to the backend root, e.g. "uploads/1712345678.jpg"
-      serviceData.image = req.file.path.replace(/\\/g, '/');
+      imageUrl = await uploadToCloudinary(req.file.buffer, req.file.originalname);
     }
-    const service = await Service.create(serviceData);
+
+    const service = await Service.create({
+      name,
+      description,
+      category,
+      image: imageUrl,
+    });
+
     res.status(201).json({ success: true, data: service });
   } catch (err) { next(err); }
 };
 
-// Admin: update a service
+// UPDATE service
 exports.updateService = async (req, res, next) => {
   try {
     const { name, description, category } = req.body;
     const update = { name, description, category };
+
     if (req.file) {
-      update.image = req.file.path.replace(/\\/g, '/');
+      update.image = await uploadToCloudinary(req.file.buffer, req.file.originalname);
     }
+
     const service = await Service.findByIdAndUpdate(req.params.id, update, { new: true });
     if (!service) return res.status(404).json({ success: false, message: 'Service not found' });
+
     res.json({ success: true, data: service });
   } catch (err) { next(err); }
 };
 
-// Admin: delete a service
+// DELETE service
 exports.deleteService = async (req, res, next) => {
   try {
     const service = await Service.findByIdAndDelete(req.params.id);

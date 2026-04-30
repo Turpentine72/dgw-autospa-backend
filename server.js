@@ -13,16 +13,16 @@ connectDB();
 
 const app = express();
 
-// CORS
+// CORS – allow your frontend URLs
 app.use(cors({
-  origin: [process.env.FRONTEND_URL, process.env.ADMIN_URL],
+  origin: [process.env.FRONTEND_URL, process.env.ADMIN_URL, 'http://localhost:5173'],
   credentials: true,
 }));
 
-// Rate limiting – set higher limit and return JSON
+// Rate limiting – returns JSON
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,   // 15 minutes
-  max: 500,   // increased for admin usage
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
+  max: parseInt(process.env.RATE_LIMIT_MAX) || 500,
   handler: (req, res) => {
     res.status(429).json({
       success: false,
@@ -36,8 +36,13 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Static files for uploaded images
+// Static files (if you still serve local uploads – but Cloudinary is preferred)
 app.use('/uploads', express.static('uploads'));
+
+// Health check (required by Railway)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -51,10 +56,10 @@ app.use('/api/contact', require('./routes/contact'));
 app.use('/api/admins', require('./routes/admins'));
 app.use('/api/settings', require('./routes/settings'));
 
-// Error handling
+// Error handling (must be last)
 app.use(errorHandler);
 
-// ---------- Saturday Promotion Reminder (runs every Saturday at 7:00 AM Lagos time) ----------
+// ---------- Saturday Promotion Reminder ----------
 cron.schedule('0 7 * * 6', async () => {
   console.log('⏰ Running Saturday promotion email job...');
   try {
@@ -67,5 +72,6 @@ cron.schedule('0 7 * * 6', async () => {
   } catch (err) { console.error('Cron error:', err.message); }
 }, { scheduled: true, timezone: 'Africa/Lagos' });
 
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server running on port ${PORT}`));
