@@ -1,16 +1,15 @@
 const cloudinary = require('cloudinary').v2;
 const Service = require('../models/Service');
 
-// ✅ Configure Cloudinary immediately
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-console.log('Cloudinary configured with cloud name:', process.env.CLOUDINARY_CLOUD_NAME);
-
+// Helper to upload buffer to Cloudinary – configures on every call (safe)
 const uploadToCloudinary = (buffer, originalName) => {
+  // 🔧 Force configuration here (overrides any previous missing config)
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
@@ -27,6 +26,7 @@ const uploadToCloudinary = (buffer, originalName) => {
   });
 };
 
+// Exports remain unchanged
 exports.getServices = async (req, res, next) => {
   try {
     const services = await Service.find().sort('name');
