@@ -1,14 +1,14 @@
 const cloudinary = require('cloudinary').v2;
 const Service = require('../models/Service');
 
-// Configure Cloudinary
+// Configure Cloudinary BEFORE any route handlers
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Helper: upload buffer to Cloudinary
+// Helper to upload buffer to Cloudinary
 const uploadToCloudinary = (buffer, originalName) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -87,4 +87,4 @@ exports.deleteService = async (req, res, next) => {
     if (!service) return res.status(404).json({ success: false, message: 'Service not found' });
     res.json({ success: true, data: {} });
   } catch (err) { next(err); }
-};
+};  
