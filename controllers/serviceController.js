@@ -3,7 +3,7 @@ const Service = require('../models/Service');
 
 // Helper to upload buffer to Cloudinary – configures on every call (safe)
 const uploadToCloudinary = (buffer, originalName) => {
-  // 🔧 Force configuration here (overrides any previous missing config)
+  // ✅ Force configuration here (overrides any missing config)
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
