@@ -13,15 +13,14 @@ connectDB();
 
 const app = express();
 
-
+// ✅ TRUST PROXY – required for Render (and any proxy)
+app.set('trust proxy', 1);
 
 // CORS – allow your frontend URLs
 app.use(cors({
   origin: [process.env.FRONTEND_URL, process.env.ADMIN_URL, 'http://localhost:5173'],
   credentials: true,
 }));
-
-
 
 // Rate limiting – returns JSON
 const limiter = rateLimit({
