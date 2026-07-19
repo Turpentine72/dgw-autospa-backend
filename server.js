@@ -16,14 +16,18 @@ const app = express();
 // ✅ TRUST PROXY – required for Render (and any proxy)
 app.set('trust proxy', 1);
 
-// ✅ CORS – allow your Vercel frontend (including preview URLs) + localhost for development
+// ✅ CORS – allow your live domain (www + non-www), FRONTEND_URL from env,
+// Vercel preview URLs (if still used), and localhost for development.
 const allowedOrigins = [
-  'https://dgwautospa.com',
   'https://www.dgwautospa.com',
+  'https://dgwautospa.com',
+  process.env.FRONTEND_URL,                         // set this in Render's env vars to your live frontend URL
+  process.env.ADMIN_URL,
   'https://dgw-autospa-full.vercel.app',
-  /^https:\/\/dgw-autospa-full-.*\.vercel\.app$/,
-  'http://localhost:5173',
-];
+  /^https:\/\/dgw-autospa-full-.*\.vercel\.app$/,    // matches any preview URL
+  'http://localhost:5173',                          // Vite dev server
+  'http://localhost:3000',                          // alternative port
+].filter(Boolean);                                    // drops any unset env vars cleanly
 
 app.use(cors({
   origin: function (origin, callback) {
