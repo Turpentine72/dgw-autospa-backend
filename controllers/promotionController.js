@@ -1,36 +1,27 @@
 const PromotionBooking = require('../models/PromotionBooking');
-const PromoCode = require('../models/PromoCode');
+const Settings = require('../models/Settings');
 const emailService = require('../utils/sendEmail');
 
 // ---------- Public: create a promotion booking ----------
+// The Free Wheel promotion now has exactly one code (MYFREEWHEEL) and is
+// applied automatically — customers never type a code. Whether booking is
+// currently allowed is controlled entirely by Settings.promotion.enabled,
+// managed from the admin Promotion Settings page.
 exports.createBooking = async (req, res, next) => {
   try {
-    const { promoCode, ...bookingData } = req.body;
+    const { promoCode, ...bookingData } = req.body; // promoCode ignored if sent by an old cached frontend
 
-    // Validate promo code
-    if (!promoCode) {
-      return res.status(400).json({ success: false, message: 'Promo code is required' });
-    }
+    const settings = await Settings.findOne();
+    const promo = settings?.promotion || {};
 
-    const code = await PromoCode.findOne({ code: promoCode.toUpperCase(), isActive: true });
-    if (!code) {
-      return res.status(400).json({ success: false, message: 'Invalid promo code' });
-    }
-    if (code.validUntil && new Date() > code.validUntil) {
-      return res.status(400).json({ success: false, message: 'Promo code has expired' });
-    }
-    if (code.maxUses > 0 && code.usedCount >= code.maxUses) {
-      return res.status(400).json({ success: false, message: 'Promo code usage limit reached' });
+    if (promo.enabled === false) {
+      return res.status(400).json({ success: false, message: 'The Free Wheel promotion is not currently active. Please check back later.' });
     }
 
-    // Create booking with the validated promo code
-    const booking = await PromotionBooking.create({ ...bookingData, promoCode: code.code });
-
-    // Increment used count if limited
-    if (code.maxUses > 0) {
-      code.usedCount += 1;
-      await code.save();
-    }
+    const booking = await PromotionBooking.create({
+      ...bookingData,
+      promoCode: promo.promoCode || 'MYFREEWHEEL',
+    });
 
     // Fire‑and‑forget emails – never crash the request
     emailService.sendPromotionBookingEmail(booking.customerEmail, booking.customerName, booking, booking.status)

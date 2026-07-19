@@ -1,5 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const Admin = require('./models/Admin');
 
 const NAME = 'Admin Name';              // ← put the admin's name here
@@ -11,16 +12,18 @@ const PASSWORD = 'YourPassword123';     // ← put the password you want
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
+    const hashed = await bcrypt.hash(PASSWORD, 10);
+
     // Check if admin already exists
     const existing = await Admin.findOne({ email: EMAIL });
     if (existing) {
       console.log('Admin already exists. Updating password...');
-      existing.password = PASSWORD;
+      existing.password = hashed;
       await existing.save();
       console.log('Password updated.');
     } else {
       // Create new admin – include 'name'
-      await Admin.create({ name: NAME, email: EMAIL, password: PASSWORD });
+      await Admin.create({ name: NAME, email: EMAIL, password: hashed });
       console.log('New admin created.');
     }
 

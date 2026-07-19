@@ -90,7 +90,11 @@ app.use('/api/admins', require('./routes/admins'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/legal', require('./routes/legal'));
 app.use('/api/stats', require('./routes/stats'));
-app.use('/api/promo-codes', require('./routes/promoCodes'));
+// Promo code CRUD API removed — the system now uses a single fixed
+// MYFREEWHEEL code applied automatically via Settings.promotion (see
+// promotionController.js). Left commented rather than deleting the
+// underlying files, in case multi-code support is wanted again later.
+// app.use('/api/promo-codes', require('./routes/promoCodes'));
 
 // Error handling (must be last)
 app.use(errorHandler);

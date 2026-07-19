@@ -23,6 +23,7 @@ exports.getPublicSettings = async (req, res, next) => {
       data: {
         business: settings.business || {},
         hours: settings.hours || {},
+        promotion: settings.promotion || {},
       },
     });
   } catch (err) { next(err); }
@@ -34,6 +35,7 @@ exports.updateSettings = async (req, res, next) => {
     if (!settings) settings = new Settings();
     if (req.body.business) settings.business = req.body.business;
     if (req.body.hours) settings.hours = req.body.hours;
+    if (req.body.promotion) settings.promotion = req.body.promotion;
     if (req.body.notifications) settings.notifications = req.body.notifications;
     await settings.save();
     emailService._invalidateCache();

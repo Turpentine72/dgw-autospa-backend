@@ -1,11 +1,11 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('./models/User');
+const Admin = require('./models/Admin');
 
 async function resetManager() {
   await mongoose.connect(process.env.MONGODB_URI);
   const email = 'damilareadegboye87@gmail.com';
-  const user = await User.findOne({ email });
+  const user = await Admin.findOne({ email });
   if (!user) {
     console.log('User not found');
     process.exit(1);

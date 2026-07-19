@@ -1,17 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  password: String,
-  role: String,
-  phone: String,
-  createdAt: { type: Date, default: Date.now }
-});
-
-const User = mongoose.model('User', userSchema);
+const Admin = require('./models/Admin');
 
 const createAdmin = async () => {
   try {
@@ -19,7 +9,7 @@ const createAdmin = async () => {
     console.log('Connected to MongoDB');
     
     // Check if admin already exists
-    const existingAdmin = await User.findOne({ email: 'oluwasegunobafemisamuel@gmail.com' });
+    const existingAdmin = await Admin.findOne({ email: 'oluwasegunobafemisamuel@gmail.com' });
     if (existingAdmin) {
       console.log('Admin already exists!');
       console.log('Email:', existingAdmin.email);
@@ -31,7 +21,7 @@ const createAdmin = async () => {
     const hashedPassword = await bcrypt.hash('Admin@123', 10);
     
     // Create admin
-    const admin = new User({
+    const admin = new Admin({
       name: 'Oluwasegun Obafemi',
       email: 'oluwasegunobafemisamuel@gmail.com',
       password: hashedPassword,
