@@ -1,0 +1,4 @@
+2026-04-22T13:27:15.790Z - Saturday Promotion: 1 sent, 0 failed
+2026-04-22T13:28:42.483Z - Saturday Promotion: 1 sent, 0 failed
+2026-04-23T12:39:33.735Z - Saturday Promotion: 1 sent, 0 failed
+2026-04-23T13:29:20.731Z - Saturday Promotion: 2 sent, 0 failed
