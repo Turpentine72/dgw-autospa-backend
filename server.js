@@ -18,10 +18,11 @@ app.set('trust proxy', 1);
 
 // ✅ CORS – allow your Vercel frontend (including preview URLs) + localhost for development
 const allowedOrigins = [
+  'https://dgwautospa.com',
+  'https://www.dgwautospa.com',
   'https://dgw-autospa-full.vercel.app',
-  /^https:\/\/dgw-autospa-full-.*\.vercel\.app$/,  // matches any preview URL
-  'http://localhost:5173',                          // Vite dev server
-  'http://localhost:3000',                          // alternative port
+  /^https:\/\/dgw-autospa-full-.*\.vercel\.app$/,
+  'http://localhost:5173',
 ];
 
 app.use(cors({
